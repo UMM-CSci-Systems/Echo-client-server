@@ -10,12 +10,15 @@ The term **client-server** refers to the configuration of the service provider a
 service consumer.  It does not require multiple machines. It is possible for the same
 computer to act as server and as client.
 
-In this lab we'll use Java implement a simple, socket-based client-server 
+In this lab we'll use Java implement a simple, socket-based client-server
 system (the echo client and server).
 
 - [The echo client/server](#the-echo-clientserver)
 - [Bats testing](#bats-testing)
 - [Manual testing](#manual-testing)
+  - [Testing your server](#testing-your-server)
+  - [Testing your client](#testing-your-client)
+  - [Testing your server with `telnet`](#testing-your-server-with-telnet)
 
 ------------------------------------------------------------------------
 
@@ -33,8 +36,8 @@ not all) of the important things (including the socket work). The one
 big difference there is that the `DateServer` returns a single string
 and quits rather than continuing to echo back its input, but the socket
 work there should be helpful. Your server should wait for a client
-connection on port 6013 using `Socket.accept()`. When a connection is
-made, the server should repeatedly:
+connection on the port specified by the instructor using `Socket.accept()`.
+When a connection is made, the server should repeatedly:
 
 - Read some data from the socket
 - Write that data back to the client
@@ -65,19 +68,19 @@ ends up trying to use Strings or some other text type, and that just doesn't wor
 for binary data. So try to resist the urge to step away from bytes as the
 primary communication type.
 
-The solution to this is very short (not much different than the 
-size of the `DateServer` example, so the trick isn't to write a lot 
-of code, but it's to get the code right. There are a few things 
+The solution to this is very short (not much different than the
+size of the `DateServer` example, so the trick isn't to write a lot
+of code, but it's to get the code right. There are a few things
 that tend to hang people up here:
 
-- Using `read()` and `write()` to do byte-oriented I/O. Since you 
-  need this to handle binary content (things like JPGs), you can't 
-  use text oriented I/O (things like `Scanner`s, `BufferedReader`s, 
+- Using `read()` and `write()` to do byte-oriented I/O. Since you
+  need this to handle binary content (things like JPGs), you can't
+  use text oriented I/O (things like `Scanner`s, `BufferedReader`s,
   and `PrintWriter`s) because they tend to mangle binary data.
-- You may find it useful to call `flush()` on your output 
-  somewhere. When you write to an OutputStream the system may 
-  buffer those bytes to send a bunch as a group for 
-  efficiency reasons. If you know there are no more bytes coming, 
+- You may find it useful to call `flush()` on your output
+  somewhere. When you write to an OutputStream the system may
+  buffer those bytes to send a bunch as a group for
+  efficiency reasons. If you know there are no more bytes coming,
   you can use `flush()` to force the system to send what it has.
 
 ## Bats testing
@@ -99,47 +102,55 @@ in the starter repo. The code has three folders:
 
 The three test scripts are:
 
-- `Echo_client.bats`, which tests your _client_ but uses the server code in 
+- `Echo_client.bats`, which tests your _client_ but uses the server code in
   `sampleBin`. You can use this to test your client without having implemented your server yet, or use it to help isolate whether a problem is in your client or your server.
-- `Echo_server.bats`, which tests your _server_ but uses the client code in 
+- `Echo_server.bats`, which tests your _server_ but uses the client code in
   `sampleBin`. You can use this to test your server without having implemented your client yet, or use it to help isolate problems again.
-- `Echo_servers_and_clients.bats`, which runs tests using both your client and server 
+- `Echo_servers_and_clients.bats`, which runs tests using both your client and server
   (so without using any of the code in `sampleBin`). Ultimately this is what you want to be able to run and have pass.
 
 ## Manual testing
 
-You can manually test your server with
+Testing this by hand can suffer from a chicken-and-egg problem, as you arguably have to
+have the server finished before you can test the client, and vice versa. As mentioned
+above, we have provided working class files for both the client and server in `test/sampleBin` which you can use to test your work.
+
+### Testing your server
+
+Let's imagine that you want to test your server implementation. You should start your
+server with:
 
 ```bash
-telnet <hostname> <port-number>
+java echoserver.EchoServer
 ```
 
-This connects to the specified host at the specified port; the instructor
-should let you know what port we're actually using.
-You can then type things, and they'll be sent to the specified host
-(which should be your Echo Server, which should just send it back). You
-can also manually test if your server and client work with binary data
-(which is the trickiest part of the lab). Let's assume that you've
-started your echo server on some machine. Let's also assume that you've
-got your echo client compiled and ready to run. Then on the
-command line go to the directory that has your class files; this will
-probably be your `src` directory if you're doing everything "by hand"
-(i.e., not using an IDE that puts your class files somewhere else). If
-you're using an IDE you'll have to figure out where it's putting the
-compiled class files, or just go in and compile your Java files by 
-hand.
+:bangbang: Make sure you're in the directory _containing_ the `echoserver` package
+directory when you run this command. People often make the mistake of being _in_
+the `echoserver` directory and typing `java EchoServer`, which won't work.
 
-Then, assuming your client is a
-class `EchoClient` in a package `echoserver`, run your client
+Once your server is running you can then use _our_ client to test your server. In a
+different terminal window go to `test/sampleBin` and run:
+
+```bash
+java echoserver.EchoClient
+```
+
+Then you can type things at that client, and you should get them back. Because of the
+way the keyboard input buffering works, you'll probably get your responses on a per-line
+basis, but that's not something you need to worry about in your implementation.
+
+If that seems to work, you can try it out on a binary file with something like:
 
 ```bash
 java echoserver.EchoClient < test.jpg > output.jpg
 ```
 
-This should (if everything's working) send the contents of "test.jpg" to
+where you replace `test.jpg` with any binary file (a JPEG, PNG, MP3, etc.).
+
+If everything's working, the command above should send the contents of `test.jpg` to
 to the server, which should send them back, and then your client will
 write them to standard output, which in this case is redirected into
-"output.jpg". You can then use
+`output.jpg`. You can then use
 
 ```bash
 diff test.jpg output.jpg
@@ -149,8 +160,37 @@ to see if the newly generated output file (`output.jpg`) is in fact
 identical to the input file (`test.jpg`). You can do this with any
 binary file (JPEGs, MP3s, Java class files, etc.); JPEGs have the
 advantage that you can often open incomplete JPEG files and they'll just
-show a monochrome block (usually in the bottom right corner) or 
+show a monochrome block (usually in the bottom right corner) or
 stripe (usually along the bottom) that
 corresponds to the missing data. Since a common problem with this
-problem is failure to deliver all the data, this allows you to see that
+problem is failure to deliver all the data (usually because of a failure to
+call `flush()` at the end of writing data before closing sockets/streams),
+this allows you to see that
 most of your system was working, but that you lost a bit on the end.
+
+When things seem right, run the `bats` tests for the server as described above'
+and hopefully everything will pass.
+
+### Testing your client
+
+Testing your client is essentially the same, but you start out server (in `test/sampleBin`)
+and then run your client. You can do all the same tests discussed up above.
+
+Again, when things seem right, run the `bats` tests for the client.
+
+### Testing your server with `telnet`
+
+:bangbang: Using `telnet` as described here is in no way necessary, but we've included it in case folks find it interesting or useful.
+
+You can manually test your server with
+
+```bash
+telnet <hostname> <port-number>
+```
+
+This connects to the specified host at the specified port.
+You can then type things, and they'll be sent to the specified host
+(which should be your Echo Server, which should just send it back). This essentially lets
+you use `telnet` as a stand-in for the client that you can use to test your server.
+When you want to quit `telnet` type `^]` (control-right-bracket); that drops you into
+the `telnet` command prompt, where `quit` will close the connection and exit `telnet`.
