@@ -1,9 +1,4 @@
-- [Echo Client & Server](#echo-client--server)
-  - [The echo client/server](#the-echo-clientserver)
-  - [Bats testing](#bats-testing)
-  - [Manual testing](#manual-testing)
-
-# Echo Client & Server
+# Echo Client & Server <!-- omit in toc -->
 
 This lab explores the idea of client-server organization.  In a client-server
 configuration one central machine called the **server** acts as a central source
@@ -17,6 +12,10 @@ computer to act as server and as client.
 
 In this lab we'll use Java implement a simple, socket-based client-server 
 system (the echo client and server).
+
+- [The echo client/server](#the-echo-clientserver)
+- [Bats testing](#bats-testing)
+- [Manual testing](#manual-testing)
 
 ------------------------------------------------------------------------
 
@@ -56,6 +55,10 @@ The recommended approach is to have the client repeatedly:
 -   Send a single byte to the server
 -   Read a single byte from the server
 -   Print that byte
+
+This diagram shows the basic communication structure that we're aiming for:
+
+![diagram of the communication structure of the echo client-server](Echo-Client-Server.png)
 
 :bangbang: People often try to do this in other ways, but this almost always
 ends up trying to use Strings or some other text type, and that just doesn't work
