@@ -36,8 +36,8 @@ work there should be helpful. Your server should wait for a client
 connection on port 6013 using `Socket.accept()`. When a connection is
 made, the server should repeatedly:
 
--   Read some data from the socket
--   Write that data back to the client
+- Read some data from the socket
+- Write that data back to the client
 
 The server should continue this until the client breaks the connection.
 After the connection is closed, the server should go back to listening
@@ -47,14 +47,14 @@ command line argument that is a hostname (e.g., `some.computer.edu`). The
 server code will be assumed to be running on that host, and the client
 will (try to) connect to that server. Note that if you get this right,
 your client should be able to talk to any other group's server, and vice
-versa. 
+versa.
 
 The recommended approach is to have the client repeatedly:
 
--   Read a single byte from the keyboard
--   Send a single byte to the server
--   Read a single byte from the server
--   Print that byte
+- Read a single byte from the keyboard
+- Send a single byte to the server
+- Read a single byte from the server
+- Print that byte
 
 This diagram shows the basic communication structure that we're aiming for:
 
@@ -70,11 +70,11 @@ size of the `DateServer` example, so the trick isn't to write a lot
 of code, but it's to get the code right. There are a few things 
 that tend to hang people up here:
 
-* Using `read()` and `write()` to do byte-oriented I/O. Since you 
+- Using `read()` and `write()` to do byte-oriented I/O. Since you 
   need this to handle binary content (things like JPGs), you can't 
   use text oriented I/O (things like `Scanner`s, `BufferedReader`s, 
   and `PrintWriter`s) because they tend to mangle binary data.
-* You may find it useful to call `flush()` on your output 
+- You may find it useful to call `flush()` on your output 
   somewhere. When you write to an OutputStream the system may 
   buffer those bytes to send a bunch as a group for 
   efficiency reasons. If you know there are no more bytes coming, 
@@ -88,19 +88,23 @@ In order for this to work
 with Java, your project needs the specfic directory structure provided
 in the starter repo. The code has three folders:
 
--   `src`, which holds the `.java` files where your code resides, and where the `.class` files will live when the tests run your code.
--   `test`, which has three `bats` test scripts, along
-    with two other things: an `etc` folder which has several sample
-    files you could use to test your code manually (see below), and a
-    `sampleBin` folder that has working class file versions of the Echo
-    Server and Echo Client, so you can test whether only one side has a
-    problem.
+- `src`, which holds the `.java` files where your code resides, and where the `.class`
+  files will live when the tests run your code.
+- `test`, which has three `bats` test scripts, along
+  with two other things: an `etc` folder which has several sample
+  files you could use to test your code manually (see below), and a
+  `sampleBin` folder that has working class file versions of the Echo
+  Server and Echo Client, so you can test whether only one side has a
+  problem.
 
 The three test scripts are:
 
-* `Echo_client.bats`, which tests your _client_ but uses the server code in `sampleBin`. You can use this to test your client without having implemented your server yet, or use it to help isolate whether a problem is in your client or your server.
-* `Echo_server.bats`, which tests your _server_ but uses the client code in `sampleBin`. You can use this to test your server without having implemented your client yet, or use it to help isolate problems again.
-* `Echo_servers_and_clients.bats`, which runs tests using both your client and server (so without using any of the code in `sampleBin`). Ultimately this is what you want to be able to run and have pass.
+- `Echo_client.bats`, which tests your _client_ but uses the server code in 
+  `sampleBin`. You can use this to test your client without having implemented your server yet, or use it to help isolate whether a problem is in your client or your server.
+- `Echo_server.bats`, which tests your _server_ but uses the client code in 
+  `sampleBin`. You can use this to test your server without having implemented your client yet, or use it to help isolate problems again.
+- `Echo_servers_and_clients.bats`, which runs tests using both your client and server 
+  (so without using any of the code in `sampleBin`). Ultimately this is what you want to be able to run and have pass.
 
 ## Manual testing
 
