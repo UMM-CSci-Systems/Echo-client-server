@@ -23,7 +23,7 @@ jobs:
           java-version: 11 
       
       - name: Setup BATS testing framework
-        uses: mig4/setup-bats@v1.0.1
+        uses: mig4/setup-bats@v1.2.0
 
       # Runs a single command using the runners shell
       - name: Run bats tests
