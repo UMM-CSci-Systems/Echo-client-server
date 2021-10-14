@@ -1,26 +1,71 @@
 # Echo Client & Server <!-- omit in toc -->
 
+- [Overview](#overview)
+- [Socket resources](#socket-resources)
+- [The echo client/server](#the-echo-clientserver)
+- [Bats testing](#bats-testing)
+- [Manual testing](#manual-testing)
+  - [Testing your server](#testing-your-server)
+  - [Testing your client](#testing-your-client)
+- [To Do](#to-do)
+
+## Overview
+
 This lab explores the idea of client-server organization.  In a client-server
-configuration one central machine called the **server** acts as a central source
+configuration one central machine called the **server** acts as the source
 for some resource or service.  Other machines known as **clients** utilize the
 resource or service provided by the server.  A good example would be a web-server
 providing web-pages to multiple browsers on multiple computers.
+
+(Note that the "server" could actually be a whole cluster of (virtual)
+machines that collectively provide the desired service. Such clusters are
+often configured so there is a single domain name or IP address that clients
+use, so it still looks to them like there's a single machine providing the
+service.)
 
 The term **client-server** refers to the configuration of the service provider and
 service consumer.  It does not require multiple machines. It is possible for the same
 computer to act as server and as client.
 
 In this lab we'll use Java implement a simple, socket-based client-server
-system (the echo client and server).
+system (the echo client and server). In development you'll likely just run
+both the client and server code on the same machine, but you (fairly easily)
+run them on different machines if you want to see that "in action".
 
-* [The echo client/server](#the-echo-clientserver)
-* [Bats testing](#bats-testing)
-* [Manual testing](#manual-testing)
-  * [Testing your server](#testing-your-server)
-  * [Testing your client](#testing-your-client)
-  * [Testing your server with `telnet`](#testing-your-server-with-telnet)
+A _socket_ is a common networking tool that provides two-way communication
+between a pair of (not necessarily distinct) computers. Each computer has the
+ability to write data (ultimately a stream of bytes) _to_ the socket on their
+end, and read data (also a sequence of bytes) _from_ the socket. See the figure
+below for an example of socket communication.
 
-------------------------------------------------------------------------
+One of the big wins of using sockets (even for communication within a single
+machine) is that the code for the client and server can be written entirely
+independently, as long as the calling structure (the API, essentially) has been
+agreed upon. It is often the case, for example, that the client and server are
+written in different languages, e.g., JavaScript in the browser for the client,
+and Java or Rust for the server.
+
+Raw socket programming can actually be quite tricky. Luckily most modern
+languages (including Java) provide nice socket libraries that abstract away
+a lot of the underlying details and allow us to just treat a socket as a
+pair of streams: An _input stream_ for reading from the socket, and an _output
+stream_ for writing to the socket.
+
+## Socket resources
+
+You might find it useful to review and run this
+[Date Server example](https://gist.github.com/NicMcPhee/2060037163d0d7fb475b5e4395b9ec32).
+This sample program does many (but
+not all) of the important things (including the socket work). The one
+big difference there is that the `DateServer` returns a single string
+and quits, where the `EchoServer` should continue to echo back its input.
+That said, the socket work in this example should be helpful.
+
+[The Java "All About Sockets" tutorial](https://docs.oracle.com/javase/tutorial/networking/sockets/index.html)
+covers all the key pieces for this
+lab. There's a warning at the top about it being written for Java 8, but
+nothing has changed in the socket libraries since then that would affect
+this lab.
 
 ## The echo client/server
 
@@ -29,37 +74,33 @@ example of building both ends of a client/server system, we'll build
 what's called an *echo server*. An echo server is a server that echoes
 back whatever it receives from a client. The starter code and tests are
 in this Github repo.
-:bangbang: You might find it useful to review and run this
-[Date Server example](https://gist.github.com/NicMcPhee/2060037163d0d7fb475b5e4395b9ec32).
-This sample program does many (but
-not all) of the important things (including the socket work). The one
-big difference there is that the `DateServer` returns a single string
-and quits rather than continuing to echo back its input, but the socket
-work there should be helpful. Your server should wait for a client
+
+Your server should wait for a client
 connection on the port specified by the instructor using `Socket.accept()`.
 When a connection is made, the server should repeatedly:
 
-* Read some data from the socket
-* Write that data back to the client
+- Read some data from the socket
+- Write that data back to the client
 
 The server should continue this until the client breaks the connection.
 After the connection is closed, the server should go back to listening
 for new connections. Your server should be able to handle binary data as
-well as text data (more on this below). Your *client* should take a
+well as text data (more on this below).
+
+Your *client* should take a
 command line argument that is a hostname (e.g., `some.computer.edu`). The
 server code will be assumed to be running on that host, and the client
 will (try to) connect to that server. Note that if you get this right,
 your client should be able to talk to any other group's server, and vice
 versa.
 
-The recommended approach is to have the client repeatedly:
+The recommended approach is illustrated in the diagram below. Here the
+idea is to have the client repeatedly:
 
-* Read a single byte from the keyboard
-* Send a single byte to the server
-* Read a single byte from the server
-* Print that byte
-
-This diagram shows the basic communication structure that we're aiming for:
+- Read a single byte from the keyboard (step 1 in the diagram)
+- Send a single byte to the server (step 2)
+- Read a single byte from the server (step 3)
+- Print that byte (step 4)
 
 ![diagram of the communication structure of the echo client-server](Echo-Client-Server.png)
 
@@ -69,15 +110,15 @@ for binary data. So try to resist the urge to step away from bytes as the
 primary communication type.
 
 The solution to this is very short (not much different than the
-size of the `DateServer` example, so the trick isn't to write a lot
+size of the `DateServer` example), so the trick isn't to write a lot
 of code, but it's to get the code right. There are a few things
 that tend to hang people up here:
 
-* Using `read()` and `write()` to do byte-oriented I/O. Since you
+- Using `read()` and `write()` to do byte-oriented I/O. Since you
   need this to handle binary content (things like JPGs), you can't
   use text oriented I/O (things like `Scanner`s, `BufferedReader`s,
   and `PrintWriter`s) because they tend to mangle binary data.
-* You may find it useful to call `flush()` on your output
+- You may find it necessary to call `flush()` on your output
   somewhere. When you write to an OutputStream the system may
   buffer those bytes to send a bunch as a group for
   efficiency reasons. If you know there are no more bytes coming,
@@ -88,26 +129,25 @@ that tend to hang people up here:
 You have functional tests for this part of the lab, using the
 [`bats` testing framework](https://github.com/sstephenson/bats).
 In order for this to work
-with Java, your project needs the specfic directory structure provided
+with Java, your project needs the specific directory structure provided
 in the starter repo. The code has three folders:
 
-* `src`, which holds the `.java` files where your code resides, and where the `.class`
+- `src`, which holds the `.java` files where your code resides, and where the `.class`
   files will live when the tests run your code.
-* `test`, which has three `bats` test scripts, along
+- `test`, which has three `bats` test scripts, along
   with two other things: an `etc` folder which has several sample
   files you could use to test your code manually (see below), and a
   `sampleBin` folder that has working class file versions of the Echo
-  Server and Echo Client, so you can test whether only one side has a
-  problem.
+  Server and Echo Client, so you can test the two components independently.
 
 The three test scripts are:
 
-* `Echo_client.bats`, which tests your _client_ but uses the server code in
+- `Echo_client.bats`, which tests your _client_ but uses our server implementation in
   `sampleBin`. You can use this to test your client without having implemented your server yet, or use it to help isolate whether a problem is in your client or your server.
-* `Echo_server.bats`, which tests your _server_ but uses the client code in
+- `Echo_server.bats`, which tests your _server_ but uses the client implementation in
   `sampleBin`. You can use this to test your server without having implemented your client yet, or use it to help isolate problems again.
-* `Echo_servers_and_clients.bats`, which runs tests using both your client and server
-  (so without using any of the code in `sampleBin`). Ultimately this is what you want to be able to run and have pass.
+- `Echo_servers_and_clients.bats`, which runs tests using both your client and server
+  (so without using any of the class files in `sampleBin`). Ultimately this is what you want to be able to run and have pass.
 
 ## Manual testing
 
@@ -135,9 +175,10 @@ different terminal window go to `test/sampleBin` and run:
 java echoserver.EchoClient
 ```
 
-Then you can type things at that client, and you should get them back. Because of the
-way the keyboard input buffering works, you'll probably get your responses on a per-line
-basis, but that's not something you need to worry about in your implementation.
+Then you can type things at that client, and you should get them back.
+:bangbang: Because of the way the keyboard input buffering works, you'll
+probably get your responses on a per-line basis, but that's not something
+you need to worry about in your implementation.
 
 If that seems to work, you can try it out on a binary file with something like:
 
@@ -168,29 +209,22 @@ call `flush()` at the end of writing data before closing sockets/streams),
 this allows you to see that
 most of your system was working, but that you lost a bit on the end.
 
-When things seem right, run the `bats` tests for the server as described above'
+When things seem right, run the `bats` tests for the server as described above
 and hopefully everything will pass.
 
 ### Testing your client
 
-Testing your client is essentially the same, but you start out server (in `test/sampleBin`)
-and then run your client. You can do all the same tests discussed up above.
+Testing your client is essentially the same, but you start our server
+(in `test/sampleBin`) and then run your client. You can do all the same
+tests discussed up above.
 
 Again, when things seem right, run the `bats` tests for the client.
 
-### Testing your server with `telnet`
+## To Do
 
-:bangbang: Using `telnet` as described here is in no way necessary, but we've included it in case folks find it interesting or useful.
+The canvas rubric provides detailed information on how you will be graded.  The main topics revolve around
 
-You can manually test your server with
-
-```bash
-telnet <hostname> <port-number>
-```
-
-This connects to the specified host at the specified port.
-You can then type things, and they'll be sent to the specified host
-(which should be your Echo Server, which should just send it back). This essentially lets
-you use `telnet` as a stand-in for the client that you can use to test your server.
-When you want to quit `telnet` type `^]` (control-right-bracket); that drops you into
-the `telnet` command prompt, where `quit` will close the connection and exit `telnet`.
+- [ ] Getting the Echo client tests to pass
+- [ ] Getting the Echo server tests to pass
+- [ ] Making sure everything is clean and readable/maintainable
+- [ ] Code and commits should be understandable and useful
