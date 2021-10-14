@@ -68,6 +68,10 @@ lab. There's a warning at the top about it being written for Java 8, but
 nothing has changed in the socket libraries since then that would affect
 this lab.
 
+You probably want to review the API docs for the relevant Java classes
+(e.g., `Socket` and `ServerSocket`, but also perhaps `InputStream` and
+`OutputStream`).
+
 ## The echo client/server
 
 Both as a way of gaining some experience with socket programming and as
