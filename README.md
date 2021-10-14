@@ -3,6 +3,7 @@
 - [Overview](#overview)
 - [Socket resources](#socket-resources)
 - [The echo client/server](#the-echo-clientserver)
+- [How does all this end?](#how-does-all-this-end)
 - [Bats testing](#bats-testing)
 - [Manual testing](#manual-testing)
   - [Testing your server](#testing-your-server)
@@ -94,15 +95,21 @@ will (try to) connect to that server. Note that if you get this right,
 your client should be able to talk to any other group's server, and vice
 versa.
 
-The recommended approach is illustrated in the diagram below. Here the
-idea is to have the client repeatedly:
+The recommended approach is illustrated in this diagram:
+
+![diagram of the communication structure of the echo client-server](Echo-Client-Server.png)
+
+Here the idea is to have the client repeatedly:
 
 - Read a single byte from the keyboard (step 1 in the diagram)
 - Send a single byte to the server (step 2)
 - Read a single byte from the server (step 3)
 - Print that byte (step 4)
 
-![diagram of the communication structure of the echo client-server](Echo-Client-Server.png)
+Similarly, the server should repeatedly:
+
+- Read a single byte from the client (step 2)
+- Write that same byte back to the client (step 3)
 
 :bangbang: People often try to do this in other ways, but this almost always
 ends up trying to use Strings or some other text type, and that just doesn't work
@@ -123,6 +130,38 @@ that tend to hang people up here:
   buffer those bytes to send a bunch as a group for
   efficiency reasons. If you know there are no more bytes coming,
   you can use `flush()` to force the system to send what it has.
+
+## How does all this end?
+
+A common problem is "ending" everything cleanly and correctly. The
+first thing to note (as illustrated in the diagram) is that the data
+flows from `System.in` through the client to the server, then back
+from the server to the client, and ultimately to `System.out`.
+
+This implies that the _client_ is the component that knows that when
+"we're done", i.e., when `System.in` is doing sending information. This
+could happen because we're reading from a file and we've reached the end
+of that file, or we're reading from the keyboard and the user typed
+`^D` (`Control-D`) to indicate that they're done entering data.
+
+At that point the client needs to tell the server that it's not going
+to send it anymore data. :bangbang: You do _not_ want to do this by
+closing the `OutputStream` or the `Socket`. If you do, then there could
+be data still on the server waiting to be sent back to the client, and it
+can get stranded there if you close things before everything has been
+written back. The client instead should call `shutDownOutput` on the
+socket; this tells the socket that the client will never send more output
+to the socket (i.e., step 2 will never happen again).
+
+That means that when the server tries to read from _its_ input stream,
+it will get nothing, similar to the end-of-file on `System.in` for the client.
+That tells the server that it's done, so it can call `shutDownOutput` on its
+version of the socket, saying that step 3 will never happen again.
+
+The client is then informed that it will never get anything more from the
+socket. At that point it makes sense for the _client_ to close the socket,
+because we now know that everyone has processed all of their content and
+there's no data that can be stranded if we close the socket.
 
 ## Bats testing
 
