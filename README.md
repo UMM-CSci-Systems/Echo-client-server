@@ -1,3 +1,5 @@
+[![All tests pass](../../workflows/Java%20CI/badge.svg)](../../actions?query=workflow%3A"Java+CI")
+
 # Echo Client & Server <!-- omit in toc -->
 
 - [Overview](#overview)
