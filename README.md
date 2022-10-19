@@ -32,7 +32,7 @@ computer to act as server and as client.
 
 In this lab we'll use Java implement a simple, socket-based client-server
 system (the echo client and server). In development you'll likely just run
-both the client and server code on the same machine, but you (fairly easily)
+both the client and server code on the same machine, but you could (fairly easily)
 run them on different machines if you want to see that "in action".
 
 A _socket_ is a common networking tool that provides two-way communication
