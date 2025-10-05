@@ -6,6 +6,7 @@ setup() {
 
 teardown() {
   rm -rf "$BATS_TMPDIR"
+  sleep 1
 }
 
 @test "Your server code compiles" {
