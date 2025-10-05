@@ -191,8 +191,22 @@ The three test scripts are:
   `sampleBin`. You can use this to test your client without having implemented your server yet, or use it to help isolate whether a problem is in your client or your server.
 - `Echo_server.bats`, which tests your _server_ but uses the client implementation in
   `sampleBin`. You can use this to test your server without having implemented your client yet, or use it to help isolate problems again.
-- `Echo_servers_and_clients.bats`, which runs tests using both your client and server
+- `Echo_server_and_client.bats`, which runs tests using both your client and server
   (so without using any of the class files in `sampleBin`). Ultimately this is what you want to be able to run and have pass.
+
+To run the `bats` tests enter
+
+```{bash}
+bats test/Echo_client.bats
+```
+```{bash}
+bats test/Echo_server.bats
+```
+```{bash}
+bats test/Echo_server_and_client.bats
+```
+
+in the top-level directory of the repository.
 
 ## Manual testing
 
@@ -202,11 +216,22 @@ above, we have provided working class files for both the client and server in `t
 
 ### Testing your server
 
-Let's imagine that you want to test your server implementation. You should start your
-server with:
+Let's imagine that you want to test your server implementation. You should compile your code from the `src` folder with:
+
+```bash
+javac echoserver/*.java
+```
+
+You should start your server with:
 
 ```bash
 java echoserver.EchoServer
+```
+
+Or, in some instances,
+
+```bash
+java echoserver/EchoServer
 ```
 
 :bangbang: Make sure you're in the directory _containing_ the `echoserver` package
@@ -222,8 +247,8 @@ java echoserver.EchoClient
 
 Then you can type things at that client, and you should get them back.
 :bangbang: Because of the way the keyboard input buffering works, you'll
-probably get your responses on a per-line basis, but that's not something
-you need to worry about in your implementation.
+probably get your responses on a per-line basis (once you hit `Enter`), 
+but that's not something you need to worry about in your implementation.
 
 If that seems to work, you can try it out on a binary file with something like:
 
